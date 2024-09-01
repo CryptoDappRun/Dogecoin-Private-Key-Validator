@@ -12,7 +12,10 @@
         <form id="keyForm">
             <div class="mb-3">
                 <label for="privateKey" class="form-label">Enter Dogecoin Private Key</label>
-                <input type="text" class="form-control" id="privateKey" placeholder="Private Key">
+                <div class="input-group">
+                    <input type="password" class="form-control" id="privateKey" placeholder="Private Key">
+                    <button type="button" class="btn btn-outline-secondary" id="togglePrivateKey">Show</button>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Validate</button>
         </form>
@@ -32,6 +35,17 @@
             wif: 0x9e // Dogecoin mainnet WIF prefix
         };
 
+        document.getElementById('togglePrivateKey').addEventListener('click', function() {
+            const privateKeyInput = document.getElementById('privateKey');
+            if (privateKeyInput.type === 'password') {
+                privateKeyInput.type = 'text';
+                this.textContent = 'Hide';
+            } else {
+                privateKeyInput.type = 'password';
+                this.textContent = 'Show';
+            }
+        });
+
         document.getElementById('keyForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -40,17 +54,14 @@
 
             const privateKey = document.getElementById('privateKey').value.trim();
 
+            try {
+                const keyPair = bitcoinjs.ECPair.fromWIF(privateKey, dogecoinNetwork);
+                const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey, network: dogecoinNetwork });
 
-         
-        try {
-
-        const keyPair = bitcoinjs.ECPair.fromWIF(privateKey, dogecoinNetwork);
-        const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey, network: dogecoinNetwork });
-        console.log(address)                  
-        resultDiv.innerHTML = `<div class="alert alert-success">Valid Private Key!<br>Public Address: <strong>${address}</strong></div>`;
-        } catch (e) {
-        resultDiv.innerHTML = e;
-        }
+                resultDiv.innerHTML = `<div class="alert alert-success">Valid Private Key!<br>Public Address: <strong>${address}</strong></div>`;
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">'+ e +'</div>';
+            }
         });
     </script>
 </body>
